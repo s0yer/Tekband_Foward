@@ -1,6 +1,6 @@
 
 // BY Jadson Marliere de Oliveira - Eng. Computacao e Eletrica
-// Projeto Aberto - Tekband Foward v2.1
+// Projeto Aberto - Tekband Foward v2.2
 // Modulo - Estimulacao funcional - FES
 
 //--------- include oled ---------
@@ -15,8 +15,19 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define MaxWaveTypes 4
 int i = 0;
 //-------------------------------
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_task_wdt.h"
+
+//TaskHandle_t Task1;
+TaskHandle_t Task2;
+// --------------------------
+int freq = 0;
 
 void drawlcd(){
+  
+  freq++;
+  if (freq >= 150) freq = 0; 
   // display frequencia
   display.clearDisplay();
   display.setTextSize(1);
@@ -24,13 +35,13 @@ void drawlcd(){
   display.print("Frequencia: ");
   display.setTextSize(2);
   display.setCursor(0,10);
-  display.print("34");
+  display.print(freq);
   display.print(" ");
   display.setTextSize(1);
-  display.cp437(true);
-  display.write(167);
-  display.setTextSize(2);
-  display.print("C");
+//  display.cp437(true);
+//  display.write(167);
+//  display.setTextSize(2);
+  display.print("Hz");
   
   // display intensidade
   display.setTextSize(1);
@@ -38,7 +49,7 @@ void drawlcd(){
   display.print("Intensidade: ");
   display.setTextSize(2);
   display.setCursor(0, 45);
-  display.print("50%");
+  display.print("50");
   display.print(" %"); 
   
   display.display();
@@ -107,18 +118,53 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(WHITE);
 
-  drawlcd();
+
+// configuracao para o processamento paralelo dual core
+//xTaskCreatePinnedToCore(
+//      pulsewave_task,
+//      "Pulsewave",
+//      1000,
+//      NULL,
+//      1,
+//      &Task1,
+//      0);
+
+xTaskCreatePinnedToCore(
+      secondary_task,
+      "task_secondary",
+      1000,
+      NULL,
+      1,
+      &Task2,
+      1);
+
+      
 }
+
+//void pulsewave_task(void * pvParameters){
+//}
+
+void secondary_task(void * pvParameters){
+    Serial.print("Task2 running on core ");
+    Serial.println(xPortGetCoreID());
+    for(;;){
+      drawlcd();
+    }
+}
+
 
 // nao criar funcao para o pulso, pois o atraso causa problemas para gerar a funcao
 void loop() {
-
   byte wave_type = 0; // Sine
   //byte wave_type = 1; // Triangle
   //byte wave_type = 2; // Sawtooth
   //byte wave_type = 3; // Square
-  dacWrite(25, WaveFormTable[wave_type][i]); 
-  delayMicroseconds(100);
-  i++;
-  if (i >= Num_Samples) i = 0; 
+    //for(;;){
+    
+      dacWrite(25, WaveFormTable[wave_type][i]); 
+      delayMicroseconds(100);
+      i++;
+      if (i >= Num_Samples) i = 0; 
+    //}
+  
 }
