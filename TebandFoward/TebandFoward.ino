@@ -23,6 +23,8 @@ int i = 0;
 TaskHandle_t Task2;
 // --------------------------
 int freq = 0;
+int val = 150; //255 = 3.3V
+#define DAC1 25
 
 void drawlcd(){
   
@@ -159,12 +161,19 @@ void loop() {
   //byte wave_type = 1; // Triangle
   //byte wave_type = 2; // Sawtooth
   //byte wave_type = 3; // Square
-    //for(;;){
     
-      dacWrite(25, WaveFormTable[wave_type][i]); 
-      delayMicroseconds(100);
-      i++;
-      if (i >= Num_Samples) i = 0; 
-    //}
+
+//   for (int deg = 0; deg < 360; deg = deg + 8){
+//    dacWrite(25, int(128 + 80 * (sin(deg*PI/180)+sin(3*deg*PI/180)/3+sin(5*deg*PI/180)/5+sin(7*deg*PI/180)/7+sin(9*deg*PI/180)/9+sin(11*deg*PI/180)/11))); // Square
+//    delayMicroseconds(500);
+//  }
+    
+    dacWrite(DAC1, 255);
+    delay(1000);
+//    dacWrite(25, WaveFormTable[wave_type][i]); 
+//    delayMicroseconds(100);
+   // i++;
+    //if (i >= Num_Samples) i = 0; 
+    
   
 }
