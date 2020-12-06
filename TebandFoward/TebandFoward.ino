@@ -21,18 +21,17 @@ TaskHandle_t Task2;
 
 //--------- DAC ESP32 -----------
 #define DAC1 25
-int freq = 0;
+int freq = 1;
 int val = 150; //255 = 3.3V
 #define DAC1 25
 int deg = 0;
-int atraso = 7188; // limiar minimo de atraso para frequencia aproximada de 150Hz
+int atraso = 0; // limiar minimo de atraso para frequencia aproximada de 150Hz
 
 //----------------Start main code----------------------
 
 void drawlcd(){
   
-  freq++;
-  if (freq >= 150) freq = 0; 
+  if (freq > 152) freq = 1; 
   // display frequencia
   display.clearDisplay();
   display.setTextSize(1);
@@ -95,17 +94,33 @@ void secondary_task(void * pvParameters){
     //Serial.print("Task2 running on core ");
     //Serial.println(xPortGetCoreID());
     for(;;){
-      drawlcd();
-      // teste de frequencia x delayMicrosecods ---------------------------------------------
+
+      // formula de define atraso necessario (delay x frequencia) -----------------------
+      
+      
+      atraso = 20120 / freq ;
       Serial.print("Secodary task : ");
-      Serial.println(atraso);
-      atraso = atraso + 1200;
-      delay(16000);
-      // limiar atraso minimo para 150Hz -> 128 microseconds
-      // limiar atraso maximo para 1Hz -> 
-      if (atraso >= 90000) atraso = 128; 
-    }
+      Serial.println(freq);
+      delay(50000);
+      freq = freq + 10;
       //-------------------------------------------------------------------
+
+      // executa funcao para mostrar no visor oled
+      drawlcd();
+
+
+      
+      // teste de frequencia x delayMicrosecods ---------------------------------------------
+//      Serial.print("Secodary task : ");
+//      Serial.println(atraso);
+//      atraso = atraso + 1200;
+//      delay(16000);
+      // limiar atraso minimo para 150Hz -> 128 microseconds
+      // limiar atraso maximo para 1Hz -> 13188 microseconds
+//      if (atraso >= 20000) atraso = 128; 
+      //-------------------------------------------------------------------
+    }
+      
       
 }
 //--------------------------------------------------------------------------
@@ -117,7 +132,7 @@ void loop() {
   // 45 pontos por comprimento de onda, 8bits
   for (int deg = 0; deg < 360; deg = deg + 8){
     dacWrite(DAC1, int(128 + 40 * ( sin(deg*PI/180)))); // sine wave 1.2kHz 100mV pk-pk
-    delayMicroseconds(1);
+    delayMicroseconds(atraso);
   }
     
     
