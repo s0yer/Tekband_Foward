@@ -25,7 +25,7 @@ int freq = 0;
 int val = 150; //255 = 3.3V
 #define DAC1 25
 int deg = 0;
-
+int atraso = 7188; // limiar minimo de atraso para frequencia aproximada de 150Hz
 
 //----------------Start main code----------------------
 
@@ -75,6 +75,8 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(WHITE);
 
+// configuracao de frequencia inicial -----------------------
+
 
 // configuracao para o processamento paralelo dual core --------------------------
 xTaskCreatePinnedToCore(
@@ -90,11 +92,21 @@ xTaskCreatePinnedToCore(
 }
 
 void secondary_task(void * pvParameters){
-    Serial.print("Task2 running on core ");
-    Serial.println(xPortGetCoreID());
+    //Serial.print("Task2 running on core ");
+    //Serial.println(xPortGetCoreID());
     for(;;){
       drawlcd();
+      // teste de frequencia x delayMicrosecods ---------------------------------------------
+      Serial.print("Secodary task : ");
+      Serial.println(atraso);
+      atraso = atraso + 1200;
+      delay(16000);
+      // limiar atraso minimo para 150Hz -> 128 microseconds
+      // limiar atraso maximo para 1Hz -> 
+      if (atraso >= 90000) atraso = 128; 
     }
+      //-------------------------------------------------------------------
+      
 }
 //--------------------------------------------------------------------------
 
@@ -105,6 +117,7 @@ void loop() {
   // 45 pontos por comprimento de onda, 8bits
   for (int deg = 0; deg < 360; deg = deg + 8){
     dacWrite(DAC1, int(128 + 40 * ( sin(deg*PI/180)))); // sine wave 1.2kHz 100mV pk-pk
+    delayMicroseconds(1);
   }
     
     
